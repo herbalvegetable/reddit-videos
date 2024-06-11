@@ -9,7 +9,8 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "remotion": "4.0.143",
-    "styled-components": "^6.1.11"
+    "styled-components": "^6.1.11",
+    "tts-react": "^3.0.7"
   },
   "devDependencies": {
     "@remotion/eslint-config": "4.0.143",

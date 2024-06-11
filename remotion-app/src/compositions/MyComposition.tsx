@@ -7,6 +7,8 @@ import {
 	Sequence,
 	Img,
 	staticFile,
+	Audio,
+	Video,
 } from 'remotion';
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
@@ -75,9 +77,11 @@ const TitleCard: React.FC<{ username: string, text: string }> = ({ username, tex
 }
 
 type Props = {
+	title: string,
+	titleDuration: number,
 	segments: any,
 }
-export const MyComposition: React.FC<Props> = ({segments}) => {
+export const MyComposition: React.FC<Props> = ({ title, titleDuration, segments }) => {
 	const { fps, durationInFrames, width, height } = useVideoConfig();
 
 	const Subtitle = styled.div`
@@ -86,6 +90,8 @@ export const MyComposition: React.FC<Props> = ({segments}) => {
 		color: white;
 		width: 60%;
 		text-align: center;
+		-webkit-text-stroke-width: 3px;
+		-webkit-text-stroke-color: #2b2b2b;
 	`;
 
 	return (
@@ -96,20 +102,22 @@ export const MyComposition: React.FC<Props> = ({segments}) => {
 				fontFamily: '"Roboto", sans-serif',
 				backgroundColor: '#2b2b2b',
 			}}>
-			<Sequence durationInFrames={fps * 2}>
+			<Sequence durationInFrames={titleDuration}>
 				<Layout>
 					<TitleCard
 						username="BlandCookie"
-						text="Our pizza is too cold and it’s ruining our thanksgiving! (New Update)" />
+						text={title} />
 				</Layout>
+				<Audio volume={0.5} src={'http://localhost:5000/api/audio/title'} />
 			</Sequence>
+			<Video src={'http://localhost:5000/bg-videos/minecraft1.mp4'}/>
 			{
 				segments.map((segment: any, i: number) => {
 					const { start, end, text, words } = segment;
 					let startFrame = start * fps;
 					let duration = (end - start) * fps;
 					return (
-						<Sequence from={fps * 2 + startFrame} durationInFrames={duration} key={i.toString()}>
+						<Sequence from={titleDuration + startFrame} durationInFrames={duration} key={i.toString()}>
 							<Layout>
 								<Subtitle>{text}</Subtitle>
 							</Layout>
@@ -117,6 +125,9 @@ export const MyComposition: React.FC<Props> = ({segments}) => {
 					)
 				})
 			}
+			<Sequence from={titleDuration}>
+				<Audio volume={0.5} src={'http://localhost:5000/api/audio/post'} />
+			</Sequence>
 		</AbsoluteFill>
 	);
 };
