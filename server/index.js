@@ -15,27 +15,44 @@ app.use(cors());
 
 app.get('/api/video-info', async(req, res) => {
     let titleDuration = await getAudioDurationInSeconds('./tts_dumps/title.mp3');
-    console.log({titleDuration});
+    let postDuration = await getAudioDurationInSeconds('./tts_dumps/post.mp3');
+    let outroDuration = await getAudioDurationInSeconds('./tts_dumps/outro.mp3');
+    console.log({titleDuration, postDuration, outroDuration});
 
     fs.readFile('./title.txt', 'utf8', (err, data) => {
         if(err){
             console.log(err);
             return;
         }
-        res.send({title: data, titleDuration});
+        res.send({
+            title: data, 
+            titleDuration,
+            postDuration,
+            outroDuration,
+        });
     });
 });
+app.get('/api/upload', async(req, res) => {
+
+})
 
 // serve subtitle data (words with timestamps)
-sttFilePath = path.join(__dirname, 'stt_dumps/post.json');
-app.get('/api/stt', async (req, res) => { 
-    let readStream = fs.createReadStream(sttFilePath);
+postFilePath = path.join(__dirname, 'stt_dumps/post.json');
+app.get('/api/stt/post', async (req, res) => { 
+    let readStream = fs.createReadStream(postFilePath);
+    readStream.pipe(res);
+});
+
+outroFilePath = path.join(__dirname, 'stt_dumps/outro.json');
+app.get('/api/stt/outro', async (req, res) => { 
+    let readStream = fs.createReadStream(outroFilePath);
     readStream.pipe(res);
 });
 
 // serve audio files
 app.get('/api/audio/title', async(req, res) => ms.pipe(req, res, './tts_dumps/title.mp3'));
 app.get('/api/audio/post', async(req, res) => ms.pipe(req, res, './tts_dumps/post.mp3'));
+app.get('/api/audio/outro', async(req, res) => ms.pipe(req, res, './tts_dumps/outro.mp3'));
 
 // serve video files
 app.use('/bg-videos', express.static(path.join(__dirname, 'bg-videos')));
