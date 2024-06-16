@@ -1,6 +1,8 @@
+__pycache__/
 node_modules/
 stt_dumps/
 tts_dumps/
 tts_post_pts/
 bg-videos/
-__pycache__/
+posts/
+.env

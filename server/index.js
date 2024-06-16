@@ -14,12 +14,12 @@ const server = app.listen(port, () => {
 app.use(cors());
 
 app.get('/api/video-info', async(req, res) => {
-    let titleDuration = await getAudioDurationInSeconds('./tts_dumps/title.mp3');
-    let postDuration = await getAudioDurationInSeconds('./tts_dumps/post.mp3');
+    let titleDuration = await getAudioDurationInSeconds('./tts_dumps/1/title.mp3');
+    let postDuration = await getAudioDurationInSeconds('./tts_dumps/1/post.mp3');
     let outroDuration = await getAudioDurationInSeconds('./tts_dumps/outro.mp3');
     console.log({titleDuration, postDuration, outroDuration});
 
-    fs.readFile('./title.txt', 'utf8', (err, data) => {
+    fs.readFile('./posts/1/title.txt', 'utf8', (err, data) => {
         if(err){
             console.log(err);
             return;
@@ -37,7 +37,7 @@ app.get('/api/upload', async(req, res) => {
 })
 
 // serve subtitle data (words with timestamps)
-postFilePath = path.join(__dirname, 'stt_dumps/post.json');
+postFilePath = path.join(__dirname, 'stt_dumps/1/post.json');
 app.get('/api/stt/post', async (req, res) => { 
     let readStream = fs.createReadStream(postFilePath);
     readStream.pipe(res);
@@ -50,8 +50,8 @@ app.get('/api/stt/outro', async (req, res) => {
 });
 
 // serve audio files
-app.get('/api/audio/title', async(req, res) => ms.pipe(req, res, './tts_dumps/title.mp3'));
-app.get('/api/audio/post', async(req, res) => ms.pipe(req, res, './tts_dumps/post.mp3'));
+app.get('/api/audio/title', async(req, res) => ms.pipe(req, res, './tts_dumps/1/title.mp3'));
+app.get('/api/audio/post', async(req, res) => ms.pipe(req, res, './tts_dumps/1/post.mp3'));
 app.get('/api/audio/outro', async(req, res) => ms.pipe(req, res, './tts_dumps/outro.mp3'));
 
 // serve video files

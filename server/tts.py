@@ -1,38 +1,45 @@
 # 1
-from clear_folder import clear_folder
 import json
 from tiktokvoice import tts
 from pydub import AudioSegment
-import os.path
+import os
+import re
+
+from clear_folder import clear_folder
+
+def getRandItem(my_list):
+    return my_list[random.randint(0, len(my_list)-1)]
 
 def convertTTS(text_prompt, file_loc, voice):
     try:
         tts(text_prompt, voice, file_loc)
     except Exception as e:
         print(e)
-voice_id = 'en_uk_003'
+
+voice_ids = ['en_uk_003', 'en_us_007']
+voice_id = voice_ids[1]
 
 paragraph_num = 0
 
-def generateTitleAudio():
+def generateTitleAudio(post_index):
     # audio for title
-    with open('./title.txt', 'r', encoding='utf-8') as f:
-        convertTTS(f.read().strip(), './tts_dumps/title.mp3', voice_id)
+    with open(f'./posts/{post_index}/title.txt', 'r', encoding='utf-8') as f:
+        convertTTS(f.read().strip().replace('*', ''), f'./tts_dumps/{post_index}/title.mp3', voice_id)
         print(f'TTS for title completed!')
 
-def generatePostAudio():
+def generatePostAudio(post_index):
     # audio for body text
-    with open('./post.txt', 'r', encoding='utf-8') as f:
-        text = f.read().strip()
-        lines = [line for line in text.split('\n') if line != ''] # remove blank spaces
+    with open(f'./posts/{post_index}/post.txt', 'r', encoding='utf-8') as f:
+        text = f.read().strip().replace('*', '')
+        lines = [line for line in re.split('[.\n]+', text) if line != ''] # remove blank spaces
         
         n = 2 # no. of lines per para
-        paragraphs = ['\n'.join(lines[i:i+n]) for i in range(0, len(lines), n)]# each para contains 10 lines]
+        paragraphs = ['.\n'.join(lines[i:i+n]) for i in range(0, len(lines), n)] # each para contains 10 lines]
         paragraph_num = len(paragraphs)
         print(paragraph_num)
         
         for index, para in enumerate(paragraphs):
-            file_loc = f'./tts_post_pts/post_pt{index+1}.mp3'
+            file_loc = f'./tts_post_pts/{post_index}/post_pt{index+1}.mp3'
             if os.path.isfile(file_loc):
                 print(f'({index+1}/{paragraph_num}) Part {index+1} already generated. Skipping...')
                 continue
@@ -43,13 +50,13 @@ def generatePostAudio():
     # combine audio parts into a single audio file (post.mp3)
     post_audio = None
     for i in range(paragraph_num):
-        audio = AudioSegment.from_mp3(f'./tts_post_pts/post_pt{i+1}.mp3')
+        audio = AudioSegment.from_mp3(f'./tts_post_pts/{post_index}/post_pt{i+1}.mp3')
             
         if i == 0:
             post_audio = audio
             continue
         post_audio += audio
-    post_audio.export('./tts_dumps/post.mp3', format='mp3')
+    post_audio.export(f'./tts_dumps/{post_index}/post.mp3', format='mp3')
 
 def generateOutroAudio():
     # audio for outro
@@ -59,30 +66,43 @@ def generateOutroAudio():
 
 def generateAudioFiles():
     # clear tts_dumps folder contents
-    clear_folder('./tts_dumps')
-    clear_folder('./tts_post_pts')
+    tts_dir = './tts_dumps'
+    clear_folder(tts_dir)
+    for i in range(3):
+        path = os.path.join(tts_dir, f'{i+1}')
+        os.mkdir(path)
+        
+    # clear tts_dumps folder contents
+    tts_post_pts_dir = './tts_post_pts'
+    clear_folder(tts_post_pts_dir)
+    for i in range(3):
+        path = os.path.join(tts_post_pts_dir, f'{i+1}')
+        os.mkdir(path)
     
-    generateTitleAudio()
     generateOutroAudio()
     
-    is_gen_post = True
-    while is_gen_post:
-        try:
-            generatePostAudio()
-            is_gen_post = False
-            break
-        except Exception as e:
-            print('Error generating post audio, retrying...')
+    # generate audio for 3 separate posts
+    for i in range(3):
+        generateTitleAudio(i+1)
+    
+        is_gen_post = True
+        while is_gen_post:
+            try:
+                generatePostAudio(i+1)
+                is_gen_post = False
+                break
+            except Exception as e:
+                print('Error generating post audio, retrying...')
             
+    # tts_dump.json info
+    with open(f'./tts_dumps/{post_index}/info.json', 'w', encoding='utf-8') as f:
+        data = {
+            'paragraph_num': paragraph_num
+        }
+        json.dump(data, f)
 
 generateAudioFiles()
         
-# tts_dump.json info
-with open('./tts_dumps/info.json', 'w', encoding='utf-8') as f:
-    data = {
-        'paragraph_num': paragraph_num
-    }
-    json.dump(data, f)
 
 
     
