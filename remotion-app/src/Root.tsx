@@ -11,6 +11,7 @@ export const RemotionRoot: React.FC = () => {
   const [totalPostDuration, setTotalPostDuration] = useState<number>(1);
   const [outroDuration, setOutroDuration] = useState<number>(1);
   const [outroSegments, setOutroSegments] = useState<Segment[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
 
   type Segment = {
     start: number,
@@ -31,7 +32,7 @@ export const RemotionRoot: React.FC = () => {
       .then(res => res.json()
         .then(videoData => {
           console.log('videoData: ', videoData);
-          const { posts, outroDuration, outroSegments } = videoData;
+          const { posts, outroDuration, outroSegments, videoUrl } = videoData;
           console.log('posts', posts);
 
           setPosts([...posts].map(post => {
@@ -53,7 +54,9 @@ export const RemotionRoot: React.FC = () => {
             posts.reduce((duration: number, post: any) => duration + (post.titleDuration + post.postDuration + post.segue.segueDuration) * FPS, 0) - posts[0].segue.segueDuration // exclude first segue
           );
           setOutroDuration(outroDuration * FPS);
-          setOutroSegments(outroSegments)
+          setOutroSegments(outroSegments);
+          setVideoUrl(videoUrl);
+          console.log('videoUrl: ', videoUrl);
         })
         .catch(err => console.log(err)))
       .catch(err => console.log(err));
@@ -75,6 +78,7 @@ export const RemotionRoot: React.FC = () => {
           totalPostDuration, // duration of all 3 posts
           outroDuration, // outro duration in frames
           outroSegments,
+          videoUrl,
         }}
       />
     </>

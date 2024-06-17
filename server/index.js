@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require('cors');
 const ms = require('mediaserver');
 const { getAudioDurationInSeconds } = require('get-audio-duration');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -23,6 +24,8 @@ app.get('/api/video-data', async (req, res) => {
             const { start, end, text, words } = segment;
             return { start, end, text, words }
         }),
+        videoUrl: `https://www.googleapis.com/drive/v3/files/1rV4I8GFCbscZw_ZmFXzlhB2jfrZ5u9W4?key=${process.env.GOOGLE_API_KEY}&alt=media`
+        // https://www.googleapis.com/drive/v3/files/<FILE_ID>?key=<GOOGLE_API_KEY>&alt=media
     }
 
 
