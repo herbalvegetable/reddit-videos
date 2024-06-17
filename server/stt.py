@@ -104,15 +104,35 @@ word_options = {
     "max_line_width": 10
 }
 
-# generate 3 post transcripts
+# generate 3 post & segue transcripts
 for i in range(3):
     post_index = i+1
+    
+    # segue
+    with open(f'./posts/{post_index}/segue.txt', 'r', encoding='utf-8') as f:
+        transcribe_audio(
+            f'./tts_dumps/{post_index}/segue.mp3',
+            f.read().strip(),
+            f'./stt_dumps/{post_index}/', 
+            word_options=word_options)
+    
+    # post
     with open(f'./posts/{post_index}/post.txt', 'r', encoding='utf-8') as f:
         transcribe_audio(
             f'./tts_dumps/{post_index}/post.mp3',
             f.read().strip(),
             f'./stt_dumps/{post_index}/', 
             word_options=word_options)
+
+# combine post transcripts into one json file
+# posts_data = {"posts": []}
+# for i in range(3):
+#     post_index = i+1
+#     with open(f'./stt_dumps/{post_index}/post.json', 'r') as f:
+#         data = json.load(f)
+#         posts_data['posts'].append(data)
+# with open(f'./stt_dumps/posts.json', 'w') as f:
+#     json.dump(posts_data, f)
 
 # generate 1 outro transcript
 with open(f'./outro.txt', 'r', encoding='utf-8') as f:

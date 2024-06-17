@@ -13,46 +13,57 @@ const server = app.listen(port, () => {
 
 app.use(cors());
 
-app.get('/api/video-info', async(req, res) => {
-    let titleDuration = await getAudioDurationInSeconds('./tts_dumps/1/title.mp3');
-    let postDuration = await getAudioDurationInSeconds('./tts_dumps/1/post.mp3');
-    let outroDuration = await getAudioDurationInSeconds('./tts_dumps/outro.mp3');
-    console.log({titleDuration, postDuration, outroDuration});
+app.get('/api/video-data', async (req, res) => {
+    let outroTranscriptData = JSON.parse(fs.readFileSync(`./stt_dumps/outro.json`, { encoding: 'utf-8', flag: 'r' }));
 
-    fs.readFile('./posts/1/title.txt', 'utf8', (err, data) => {
-        if(err){
-            console.log(err);
-            return;
+    let videoData = {
+        posts: [],
+        outroDuration: await getAudioDurationInSeconds('./tts_dumps/outro.mp3'),
+        outroSegments: outroTranscriptData.segments.map(segment => {
+            const { start, end, text, words } = segment;
+            return { start, end, text, words }
+        }),
+    }
+
+
+    for (let i = 0; i < 3; i++) {
+        let postIndex = i + 1
+        let title = fs.readFileSync(`./posts/${postIndex}/title.txt`, { encoding: 'utf-8', flag: 'r' });
+
+        let postTranscriptData = JSON.parse(fs.readFileSync(`./stt_dumps/${postIndex}/post.json`, { encoding: 'utf-8', flag: 'r' }));
+        let segueTranscriptData = JSON.parse(fs.readFileSync(`./stt_dumps/${postIndex}/segue.json`, { encoding: 'utf-8', flag: 'r' }));
+
+        postData = {
+            title,
+            titleDuration: await getAudioDurationInSeconds(`./tts_dumps/${postIndex}/title.mp3`),
+            postDuration: await getAudioDurationInSeconds(`./tts_dumps/${postIndex}/post.mp3`),
+            segments: postTranscriptData.segments.map(segment => {
+                const { start, end, text, words } = segment;
+                return { start, end, text, words }
+            }),
+            segue: {
+                segueDuration: await getAudioDurationInSeconds(`./tts_dumps/${postIndex}/segue.mp3`),
+                segments: segueTranscriptData.segments.map(segment => {
+                    const { start, end, text, words } = segment;
+                    return { start, end, text, words }
+                }),
+            }
         }
-        res.send({
-            title: data, 
-            titleDuration,
-            postDuration,
-            outroDuration,
-        });
-    });
-});
-app.get('/api/upload', async(req, res) => {
 
-})
+        videoData.posts.push(postData);
+    }
 
-// serve subtitle data (words with timestamps)
-postFilePath = path.join(__dirname, 'stt_dumps/1/post.json');
-app.get('/api/stt/post', async (req, res) => { 
-    let readStream = fs.createReadStream(postFilePath);
-    readStream.pipe(res);
-});
-
-outroFilePath = path.join(__dirname, 'stt_dumps/outro.json');
-app.get('/api/stt/outro', async (req, res) => { 
-    let readStream = fs.createReadStream(outroFilePath);
-    readStream.pipe(res);
+    res.send(videoData);
 });
 
 // serve audio files
-app.get('/api/audio/title', async(req, res) => ms.pipe(req, res, './tts_dumps/1/title.mp3'));
-app.get('/api/audio/post', async(req, res) => ms.pipe(req, res, './tts_dumps/1/post.mp3'));
-app.get('/api/audio/outro', async(req, res) => ms.pipe(req, res, './tts_dumps/outro.mp3'));
+for (let i = 0; i < 3; i++) {
+    let postIndex = i + 1;
+    app.get(`/api/audio/${postIndex}/segue`, async (req, res) => ms.pipe(req, res, `./tts_dumps/${postIndex}/segue.mp3`));
+    app.get(`/api/audio/${postIndex}/title`, async (req, res) => ms.pipe(req, res, `./tts_dumps/${postIndex}/title.mp3`));
+    app.get(`/api/audio/${postIndex}/post`, async (req, res) => ms.pipe(req, res, `./tts_dumps/${postIndex}/post.mp3`));
+}
+app.get('/api/audio/outro', async (req, res) => ms.pipe(req, res, './tts_dumps/outro.mp3'));
 
 // serve video files
 app.use('/bg-videos', express.static(path.join(__dirname, 'bg-videos')));

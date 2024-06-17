@@ -2,6 +2,7 @@ import os
 from praw import Reddit
 import random
 import string
+import re
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -57,6 +58,10 @@ def getPost(sub_list, post_index):
         printable = set(string.printable)
         title = ''.join(list(filter(lambda x: x in printable, submission.title)))
         text = ''.join(list(filter(lambda x: x in printable, submission.selftext)))
+        text = re.sub(
+                '(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})',
+                '',
+                text) # remove links
         # print(text)
         
         post = {
@@ -64,16 +69,25 @@ def getPost(sub_list, post_index):
             'text': text,
             'score': submission.score,
             'nsfw': submission.over_18,
+            'id': submission.id,
         }
         filtered_posts.append(post)
         
-        print(f'{index+1}/{len(top_submissions_of_year)}: filtered({len(filtered_posts)}): ^{submission.score} | {submission.title}{' | NSFW' if submission.over_18 else ''}')
+        print(f'{index+1}/{len(top_submissions_of_year)}: filtered({len(filtered_posts)}): ^{submission.score} | {submission.title}{' | NSFW' if submission.over_18 else ''} | {submission.id}')
         
     print(f'Total filtered posts: {len(filtered_posts)}')
 
     rand_post = getRandItem(filtered_posts)
     print(f'\nSelected post: {rand_post['title']} ({len(rand_post['text'])}) ^{rand_post['score']}')
 
+    # segue
+    with open(f'./posts/{post_index}/segue.txt', 'w') as f:
+        suffix = {
+            1: 'st',
+            2: 'nd',
+            3: 'rd',
+        }
+        f.write(f'{post_index}{'th' if post_index not in suffix else suffix[post_index]} story')
     # title
     with open(f'./posts/{post_index}/title.txt', 'w') as f:
         f.write(rand_post['title'].replace('&#x200B;', ''))

@@ -1,17 +1,17 @@
 import {
-  AbsoluteFill,
-  useCurrentFrame,
-  useVideoConfig,
-  interpolate,
-  spring,
-  Sequence,
-  Img,
-  staticFile,
-  Audio,
-  Video,
+	AbsoluteFill,
+	useCurrentFrame,
+	useVideoConfig,
+	interpolate,
+	spring,
+	Sequence,
+	Img,
+	staticFile,
+	Audio,
+	Video,
 } from 'remotion';
 import styled from 'styled-components';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { BiSolidUpvote, BiComment } from 'react-icons/bi';
 
 import '../font.css';
@@ -25,24 +25,24 @@ const Layout = styled.div`
 `;
 
 const TitleCard: React.FC<{ username: string, pfpSrc: string, text: string }> = ({ username, pfpSrc, text }) => {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames, width, height } = useVideoConfig();
-  // const opacity = interpolate(
-  // 	frame,
-  // 	[0, fps * 0.2],
-  // 	[0, 1],
-  // 	{ extrapolateRight: 'clamp', }
-  // );
-  const scale = spring({
-    fps,
-    frame,
-    config: {
-      // stiffness: 25,
-      mass: 0.7,
-    },
-  });
+	const frame = useCurrentFrame();
+	const { fps, durationInFrames, width, height } = useVideoConfig();
+	// const opacity = interpolate(
+	// 	frame,
+	// 	[0, fps * 0.2],
+	// 	[0, 1],
+	// 	{ extrapolateRight: 'clamp', }
+	// );
+	const scale = spring({
+		fps,
+		frame,
+		config: {
+			// stiffness: 25,
+			mass: 0.7,
+		},
+	});
 
-  const Card = styled.div`
+	const Card = styled.div`
 		text-align: left;
 		width: 70%;
 		background-color: white;
@@ -52,62 +52,62 @@ const TitleCard: React.FC<{ username: string, pfpSrc: string, text: string }> = 
 		transform: scale(${scale});
 	`;
 
-  const reactions = [
-    { ReactionIcon: BiSolidUpvote, colour: 'orange' },
-    { ReactionIcon: BiComment },
-  ]
+	const reactions = [
+		{ ReactionIcon: BiSolidUpvote, colour: 'orange' },
+		{ ReactionIcon: BiComment },
+	]
 
-  return (
-    <Card>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: '1em',
-      }}>
-        <div style={{
-          borderRadius: '50%',
-          backgroundColor: 'gray',
-          width: '70px',
-          aspectRatio: '1/1',
-          marginRight: '0.75em',
-          overflow: 'hidden',
-        }}>
-          <Img style={{ width: '100%', height: '100%' }} src={staticFile(pfpSrc)} />
-        </div>
-        <div style={{
-          fontSize: '2.2em',
-        }}>{username}</div>
-      </div>
-      <div style={{
-        fontSize: '3em',
-        fontWeight: '600',
-      }}>{text}</div>
-      <div style={{ display: 'flex', flexDirection: 'row', paddingTop: '1.7em', paddingBottom: '0.7em' }}>
-        {
-          reactions.map((reaction, i) => {
-            const { ReactionIcon, colour } = reaction;
-            return (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                marginRight: '1.5em',
-                alignItems: 'center',
-                color: '#555',
-              }} key={i.toString()}>
-                <ReactionIcon color={colour} style={{ fontSize: '2.2em', marginRight: '0.25em' }} />
-                <div style={{ fontSize: '1.7em' }}>99+</div>
-              </div>
-            )
-          })
-        }
-      </div>
-    </Card>
-  )
+	return (
+		<Card>
+			<div style={{
+				display: 'flex',
+				flexDirection: 'row',
+				alignItems: 'center',
+				marginBottom: '1em',
+			}}>
+				<div style={{
+					borderRadius: '50%',
+					backgroundColor: 'gray',
+					width: '70px',
+					aspectRatio: '1/1',
+					marginRight: '0.75em',
+					overflow: 'hidden',
+				}}>
+					<Img style={{ width: '100%', height: '100%' }} src={staticFile(pfpSrc)} />
+				</div>
+				<div style={{
+					fontSize: '2.2em',
+				}}>{username}</div>
+			</div>
+			<div style={{
+				fontSize: '3em',
+				fontWeight: '600',
+			}}>{text}</div>
+			<div style={{ display: 'flex', flexDirection: 'row', paddingTop: '1.7em', paddingBottom: '0.7em' }}>
+				{
+					reactions.map((reaction, i) => {
+						const { ReactionIcon, colour } = reaction;
+						return (
+							<div style={{
+								display: 'flex',
+								flexDirection: 'row',
+								marginRight: '1.5em',
+								alignItems: 'center',
+								color: '#555',
+							}} key={i.toString()}>
+								<ReactionIcon color={colour} style={{ fontSize: '2.2em', marginRight: '0.25em' }} />
+								<div style={{ fontSize: '1.7em' }}>99+</div>
+							</div>
+						)
+					})
+				}
+			</div>
+		</Card>
+	)
 }
 
 const Watermark: React.FC<{ username: string, pfpSrc: string }> = ({ username, pfpSrc }) => {
-  const Container = styled.div`
+	const Container = styled.div`
 		display: flex;
 		align-items: center;
 		align-self: flex-start;
@@ -115,7 +115,7 @@ const Watermark: React.FC<{ username: string, pfpSrc: string }> = ({ username, p
 		opacity: 0.5;
 		padding: 1em;
 	`;
-  const ImageContainer = styled.div`
+	const ImageContainer = styled.div`
 		border-radius: 50%;
 		background-color: gray;
 		width: 50px;
@@ -123,48 +123,57 @@ const Watermark: React.FC<{ username: string, pfpSrc: string }> = ({ username, p
 		margin-right: 0.75em;
 		overflow: hidden;
 	`
-  return (
-    <Container>
-      <ImageContainer>
-        <Img style={{ width: '100%', height: '100%' }} src={staticFile(pfpSrc)} />
-      </ImageContainer>
-      {/* <div style={{
+	return (
+		<Container>
+			<ImageContainer>
+				<Img style={{ width: '100%', height: '100%' }} src={staticFile(pfpSrc)} />
+			</ImageContainer>
+			{/* <div style={{
 				color: '#2b2b2b',
 				fontSize: '1.5em',
 				fontWeight: 'bold',
 			}}>{username}</div> */}
-    </Container>
-  )
+		</Container>
+	)
+}
+
+type Segment = {
+	start: number,
+	end: number,
+	text: string,
+	words: any[],
+}
+type Post = {
+	title: string,
+	titleDuration: number,
+	postDuration: number,
+	segments: Segment[],
+	segue: any,
 }
 
 type MyCompositionProps = {
-  username: string,
-  pfpSrc: string,
+	username: string,
+	pfpSrc: string,
 
-  title: string,
-  titleDuration: number,
-  segments: any,
+	posts: Post[],
+	totalPostDuration: number,
 
-  postDuration: number,
-
-  outroDuration: number,
-  outroSegments: any,
+	outroDuration: number,
+	outroSegments: Segment[],
 }
 
-export const MyComposition: React.FC<MyCompositionProps> = ({ 
-  username, 
-  pfpSrc, 
-  title, 
-  titleDuration, 
-  segments, 
-  postDuration, 
-  outroDuration, 
-  outroSegments 
+export const MyComposition: React.FC<MyCompositionProps> = ({
+	username,
+	pfpSrc,
+	posts,
+	totalPostDuration,
+	outroDuration,
+	outroSegments
 }) => {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames, width, height } = useVideoConfig();
+	const frame = useCurrentFrame();
+	const { fps, durationInFrames, width, height } = useVideoConfig();
 
-  const Subtitle = styled.div`
+	const Subtitle = styled.div`
     font-size: 3.5em;
     /* font-family: "Luckiest Guy", cursive; */
     font-family: "Rubik", sans-serif;
@@ -177,68 +186,109 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
     -webkit-text-stroke-color: black;
   `;
 
-  return (
-    <AbsoluteFill
-      style={{
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: '"Roboto", sans-serif',
-        backgroundColor: '#2b2b2b',
-      }}>
-      <Sequence durationInFrames={titleDuration}>
-        <Layout>
-          <TitleCard
-            username={username}
-            pfpSrc={pfpSrc}
-            text={title} />
-        </Layout>
-        <Audio volume={0.5} src={'http://localhost:5000/api/audio/title'} />
-      </Sequence>
-      <Video src={'http://localhost:5000/bg-videos/minecraft1.mp4'} />
-      {
-        segments.map((segment: any, i: number) => {
-          const { start, end, text, words } = segment;
-          let startFrame = start * fps;
-          let duration = (end - start) * fps;
+	return (
+		<AbsoluteFill
+			style={{
+				alignItems: 'center',
+				justifyContent: 'center',
+				fontFamily: '"Roboto", sans-serif',
+				backgroundColor: '#2b2b2b',
+			}}>
+			{
+				posts.map((post: Post, i: number) => {
+					let postIndex = i + 1;
 
-          return (
-            <>
-              <Sequence from={titleDuration + startFrame} durationInFrames={duration} name={`Sub ${i + 1}`} key={i.toString()}>
-                <Layout>
-                  <Subtitle>{text}</Subtitle>
-                </Layout>
-              </Sequence>
-            </>
-          )
-        })
-      }
-      <Sequence from={titleDuration} name="Post Audio">
-        <Audio volume={0.5} src={'http://localhost:5000/api/audio/post'} />
-      </Sequence>
+					const { title, titleDuration, postDuration, segments, segue } = post;
+					let segueStart: number = i <= 0 ? 0 : posts.slice(0, i).reduce((duration: number, post: Post) => {
+						// console.log({post, duration, titleDur: post.titleDuration, postDur: post.postDuration});
+						return duration + Math.ceil(post.segue.segueDuration + post.titleDuration + post.postDuration); // previous posts
+					}, 0);
+					let titleStart: number = segueStart + (i <= 0 ? 0 : segue.segueDuration);
+					let postStart: number = titleStart + titleDuration;
+					// console.log({ titleStart, postStart, titleDuration });
 
-      {
-        outroSegments.map((segment: any, i: number) => {
-          const { start, end, text, words } = segment;
-          let startFrame = start * fps;
-          let duration = (end - start) * fps;
+					return (
+						<Fragment key={i.toString()}>
+							{
+								i <= 0 ? null :
+									<>
+										{
+											segue.segments.map((segment: Segment, i: number) => {
+												const { start, end, text, words } = segment;
+												let startFrame = start * fps;
+												let duration = Math.max((end - start) * fps, 1);
+												return (
+													<Sequence from={segueStart + startFrame} durationInFrames={duration}>
+														<Layout>
+															<Subtitle>{text}</Subtitle>
+														</Layout>
+													</Sequence>
+												)
+											})
+										}
+										<Sequence from={segueStart} durationInFrames={segue.segueDuration} name={'Segue Audio'}>
+											<Audio volume={0.5} src={`http://localhost:5000/api/audio/${postIndex}/segue`} />
+										</Sequence>
+									</>
+							}
 
-          return (
-            <Sequence from={titleDuration + postDuration + startFrame} durationInFrames={duration} name={`Outro ${i + 1}`} key={i.toString()}>
-              <Layout>
-                <Subtitle>{text}</Subtitle>
-              </Layout>
-            </Sequence>
-          )
-        })
-      }
-      <Sequence from={titleDuration + postDuration} name="Outro Audio">
-        <Audio volume={0.5} src={'http://localhost:5000/api/audio/outro'} />
-      </Sequence>
+							<Sequence from={titleStart} durationInFrames={titleDuration}>
+								<Layout>
+									<TitleCard
+										username={username}
+										pfpSrc={pfpSrc}
+										text={title} />
+								</Layout>
+								<Audio volume={0.5} src={`http://localhost:5000/api/audio/${postIndex}/title`} />
+							</Sequence>
+							{
+								segments.map((segment: Segment, i: number) => {
+									const { start, end, text, words } = segment;
+									let startFrame = start * fps;
+									let duration = Math.max((end - start) * fps, 1);
+									if (duration <= 0) {
+										console.log('DURATION NEGATIVE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', duration);
+										console.log(post, segment);
+									}
 
-      <Sequence from={titleDuration} name="Watermark">
-        <Watermark username={username} pfpSrc={pfpSrc} />
-      </Sequence>
+									return (
+										<Sequence from={postStart + startFrame} durationInFrames={duration} name={`Subt ${i + 1}`} key={i.toString()}>
+											<Layout>
+												<Subtitle>{text}</Subtitle>
+											</Layout>
+										</Sequence>
+									)
+								})
+							}
+							<Sequence from={postStart} durationInFrames={postDuration} name="Post Audio">
+								<Audio volume={0.5} src={`http://localhost:5000/api/audio/${postIndex}/post`} />
+							</Sequence>
+						</Fragment>
+					)
+				})
+			}
 
-    </AbsoluteFill>
-  );
+			{
+				outroSegments.map((segment: Segment, i: number) => {
+					const { start, end, text, words } = segment;
+					let startFrame = start * fps;
+					let duration = (end - start) * fps;
+
+					return (
+						<Sequence from={totalPostDuration + startFrame} durationInFrames={duration} name={`Outro ${i + 1}`} key={i.toString()}>
+							<Layout>
+								<Subtitle>{text}</Subtitle>
+							</Layout>
+						</Sequence>
+					)
+				})
+			}
+			<Sequence from={totalPostDuration} name="Outro Audio">
+				<Audio volume={0.5} src={'http://localhost:5000/api/audio/outro'} />
+			</Sequence>
+
+			<Watermark username={username} pfpSrc={pfpSrc} />
+			<Video src={'http://localhost:5000/bg-videos/minecraft1.mp4'} />
+		</AbsoluteFill>
+	);
 };
