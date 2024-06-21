@@ -8,10 +8,9 @@ const PROFILE_PIC_SRC = 'pfp_cookie2.png';
 
 export const RemotionRoot: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [totalPostDuration, setTotalPostDuration] = useState<number>(1);
+  const [totalDuration, setTotalDuration] = useState<number>(1);
   const [outroDuration, setOutroDuration] = useState<number>(1);
   const [outroSegments, setOutroSegments] = useState<Segment[]>([]);
-  const [videoUrl, setVideoUrl] = useState<string>('');
 
   type Segment = {
     start: number,
@@ -32,10 +31,10 @@ export const RemotionRoot: React.FC = () => {
       .then(res => res.json()
         .then(videoData => {
           console.log('videoData: ', videoData);
-          const { posts, outroDuration, outroSegments, videoUrl } = videoData;
-          console.log('posts', posts);
+          const { posts: postsData, outroDuration, outroSegments, totalDuration } = videoData;
+          console.log('posts', postsData);
 
-          setPosts([...posts].map(post => {
+          setPosts([...postsData].map(post => {
             const { title, titleDuration, postDuration, segments, segue } = post;
 
             let newSegue = {...segue}
@@ -50,13 +49,9 @@ export const RemotionRoot: React.FC = () => {
             }
             return postData;
           }));
-          setTotalPostDuration(
-            posts.reduce((duration: number, post: any) => duration + (post.titleDuration + post.postDuration + post.segue.segueDuration) * FPS, 0) - posts[0].segue.segueDuration // exclude first segue
-          );
+          setTotalDuration((totalDuration - postsData[0].segue.segueDuration) * FPS); // exclude first segue
           setOutroDuration(outroDuration * FPS);
           setOutroSegments(outroSegments);
-          setVideoUrl(videoUrl);
-          console.log('videoUrl: ', videoUrl);
         })
         .catch(err => console.log(err)))
       .catch(err => console.log(err));
@@ -67,7 +62,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="MyComposition"
         component={MyComposition}
-        durationInFrames={Math.ceil(totalPostDuration + outroDuration + (FPS * 5)) || 1}
+        durationInFrames={Math.ceil(totalDuration + (FPS * 5)) || 1}
         fps={FPS}
         width={1280}
         height={720}
@@ -75,10 +70,9 @@ export const RemotionRoot: React.FC = () => {
           username: USERNAME,
           pfpSrc: PROFILE_PIC_SRC,
           posts,
-          totalPostDuration, // duration of all 3 posts
+          totalDuration, // duration of all 3 posts
           outroDuration, // outro duration in frames
           outroSegments,
-          videoUrl,
         }}
       />
     </>

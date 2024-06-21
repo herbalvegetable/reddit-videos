@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const ms = require('mediaserver');
-const { getAudioDurationInSeconds } = require('get-audio-duration');
+// const bgVideoBucket = require('./aws-buckets/bg-videos');
 require('dotenv').config();
 
 const app = express();
@@ -15,19 +15,19 @@ const server = app.listen(port, () => {
 app.use(cors());
 
 app.get('/api/video-data', async (req, res) => {
+    let durationInfoData = JSON.parse(fs.readFileSync(`./duration_info.json`, { encoding: 'utf-8', flag: 'r' }));
+
     let outroTranscriptData = JSON.parse(fs.readFileSync(`./stt_dumps/outro.json`, { encoding: 'utf-8', flag: 'r' }));
 
     let videoData = {
         posts: [],
-        outroDuration: await getAudioDurationInSeconds('./tts_dumps/outro.mp3'),
+        outroDuration: durationInfoData.outro,
         outroSegments: outroTranscriptData.segments.map(segment => {
             const { start, end, text, words } = segment;
             return { start, end, text, words }
         }),
-        videoUrl: `https://www.googleapis.com/drive/v3/files/1rV4I8GFCbscZw_ZmFXzlhB2jfrZ5u9W4?key=${process.env.GOOGLE_API_KEY}&alt=media`
-        // https://www.googleapis.com/drive/v3/files/<FILE_ID>?key=<GOOGLE_API_KEY>&alt=media
+        totalDuration: durationInfoData.total,
     }
-
 
     for (let i = 0; i < 3; i++) {
         let postIndex = i + 1
@@ -38,14 +38,14 @@ app.get('/api/video-data', async (req, res) => {
 
         postData = {
             title,
-            titleDuration: await getAudioDurationInSeconds(`./tts_dumps/${postIndex}/title.mp3`),
-            postDuration: await getAudioDurationInSeconds(`./tts_dumps/${postIndex}/post.mp3`),
+            titleDuration: durationInfoData.posts[i].title,
+            postDuration: durationInfoData.posts[i].post,
             segments: postTranscriptData.segments.map(segment => {
                 const { start, end, text, words } = segment;
                 return { start, end, text, words }
             }),
             segue: {
-                segueDuration: await getAudioDurationInSeconds(`./tts_dumps/${postIndex}/segue.mp3`),
+                segueDuration: durationInfoData.posts[i].segue,
                 segments: segueTranscriptData.segments.map(segment => {
                     const { start, end, text, words } = segment;
                     return { start, end, text, words }
@@ -70,3 +70,34 @@ app.get('/api/audio/outro', async (req, res) => ms.pipe(req, res, './tts_dumps/o
 
 // serve video files
 app.use('/bg-videos', express.static(path.join(__dirname, 'bg-videos')));
+
+// function getRandItem(arr) {
+//     return arr[Math.floor(Math.random() * arr.length)];
+// }
+// let fileKeys = ['minecraft1', 'minecraft2'];
+// app.get('/api/video', async (req, res) => {
+//     const { getFile } = bgVideoBucket;
+//     let fileName = fileKeys[0];
+//     try {
+//         const readStream = await getFile(`${fileName}.mp4`);
+//         console.log(readStream);
+//         // readStream.pipe(res);
+
+//         // cut video to random time (for variety)
+//         res.header('Content-Disposition', `attachment; filename=${fileName}.mp4`);
+//         ffmpeg(readStream)
+//             .seekInput('00:00:10')
+//             .setDuration('05:00')
+//             .toFormat('mp4')
+//             .on('error', (err, stdout, stderr) => {
+//                 console.log('an error happened: ' + err.message);
+//                 console.log('ffmpeg stdout: ' + stdout);
+//                 console.log('ffmpeg stderr: ' + stderr);
+//             })
+//             .pipe(res, {end: true});
+
+//     }
+//     catch (err) {
+//         console.log(err);
+//     }
+// });

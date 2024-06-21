@@ -157,22 +157,19 @@ type MyCompositionProps = {
   pfpSrc: string,
 
   posts: Post[],
-  totalPostDuration: number,
+  totalDuration: number,
 
   outroDuration: number,
   outroSegments: Segment[],
-
-  videoUrl: string,
 }
 
 export const MyComposition: React.FC<MyCompositionProps> = ({
   username,
   pfpSrc,
   posts,
-  totalPostDuration,
+  totalDuration,
   outroDuration,
   outroSegments,
-  videoUrl,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
@@ -231,7 +228,7 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
                       })
                     }
                     <Sequence from={segueStart} durationInFrames={segue.segueDuration} name={'Segue Audio'}>
-                      <Audio volume={0.5} src={`http://localhost:5000/api/audio/${postIndex}/segue`} />
+                      <Audio volume={1} src={`http://localhost:5000/api/audio/${postIndex}/segue`} />
                     </Sequence>
                   </>
               }
@@ -243,7 +240,7 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
                     pfpSrc={pfpSrc}
                     text={title} />
                 </Layout>
-                <Audio volume={0.5} src={`http://localhost:5000/api/audio/${postIndex}/title`} />
+                <Audio volume={1} src={`http://localhost:5000/api/audio/${postIndex}/title`} />
               </Sequence>
               {
                 segments.map((segment: Segment, i: number) => {
@@ -265,7 +262,7 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
                 })
               }
               <Sequence from={postStart} durationInFrames={postDuration} name="Post Audio">
-                <Audio volume={0.5} src={`http://localhost:5000/api/audio/${postIndex}/post`} />
+                <Audio volume={1} src={`http://localhost:5000/api/audio/${postIndex}/post`} />
               </Sequence>
             </Fragment>
           )
@@ -279,7 +276,7 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
           let duration = (end - start) * fps;
 
           return (
-            <Sequence from={totalPostDuration + startFrame} durationInFrames={duration} name={`Outro ${i + 1}`} key={i.toString()}>
+            <Sequence from={totalDuration - outroDuration + fps*1 + startFrame} durationInFrames={duration} name={`Outro ${i + 1}`} key={i.toString()}>
               <Layout>
                 <Subtitle>{text}</Subtitle>
               </Layout>
@@ -287,13 +284,13 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
           )
         })
       }
-      <Sequence from={totalPostDuration} name="Outro Audio">
-        <Audio volume={0.5} src={'http://localhost:5000/api/audio/outro'} />
+      <Sequence from={totalDuration - outroDuration + fps*1} name="Outro Audio">
+        <Audio volume={1} src={'http://localhost:5000/api/audio/outro'} />
       </Sequence>
 
       <Watermark username={username} pfpSrc={pfpSrc} />
-      {/* { videoUrl && <OffthreadVideo src={videoUrl} />} */}
-      <OffthreadVideo src={'http://localhost:5000/bg-videos/minecraft1.mp4'} />
+      {/* <OffthreadVideo src={`http://localhost:5000/api/video`} /> */}
+      <OffthreadVideo src={'http://localhost:5000/bg-videos/final-video.mp4'} />
     </AbsoluteFill>
   );
 };

@@ -5,12 +5,17 @@ from pydub import AudioSegment
 import os
 import re
 
+from mutagen.mp3 import MP3
+def get_audio_duration(file_path):
+    audio = MP3(file_path)
+    return audio.info.length
+
 from clear_folder import clear_folder
 
-def getRandItem(my_list):
+def get_rand_item(my_list):
     return my_list[random.randint(0, len(my_list)-1)]
 
-def convertTTS(text_prompt, file_loc, voice):
+def convert_tts(text_prompt, file_loc, voice):
     try:
         tts(text_prompt, voice, file_loc)
     except Exception as e:
@@ -21,19 +26,27 @@ voice_id = voice_ids[1]
 
 paragraph_num = 0
 
-def generateSegueAudio(post_index):
+def gen_segue_audio(post_index):
     # audio for segue
+    path = f'./tts_dumps/{post_index}/segue.mp3'
+    
     with open(f'./posts/{post_index}/segue.txt', 'r', encoding='utf-8') as f:
-        convertTTS(f.read().strip(), f'./tts_dumps/{post_index}/segue.mp3', voice_id)
+        convert_tts(f.read().strip(), path, voice_id)
         print(f'Post {post_index}: TTS for segue completed!')
+        
+    return get_audio_duration(path)
 
-def generateTitleAudio(post_index):
+def gen_title_audio(post_index):
     # audio for title
+    path = f'./tts_dumps/{post_index}/title.mp3'
+    
     with open(f'./posts/{post_index}/title.txt', 'r', encoding='utf-8') as f:
-        convertTTS(f.read().strip().replace('*', ''), f'./tts_dumps/{post_index}/title.mp3', voice_id)
+        convert_tts(f.read().strip().replace('*', ''), path, voice_id)
         print(f'Post {post_index}: TTS for title completed!')
+    
+    return get_audio_duration(path)
 
-def generatePostAudio(post_index):
+def gen_post_audio(post_index):
     # audio for body text
     with open(f'./posts/{post_index}/post.txt', 'r', encoding='utf-8') as f:
         text = f.read().strip().replace('*', '') # remove tts reading * in audio
@@ -51,10 +64,12 @@ def generatePostAudio(post_index):
                 print(f'({index+1}/{paragraph_num}) Part {index+1} already generated. Skipping...')
                 continue
             
-            convertTTS(para, file_loc, voice_id)
+            convert_tts(para, file_loc, voice_id)
             print(f'Post {post_index}: ({index+1}/{paragraph_num}) TTS for part {index+1} completed!')
 
     # combine audio parts into a single audio file (post.mp3)
+    path = f'./tts_dumps/{post_index}/post.mp3'
+    
     post_audio = None
     for i in range(paragraph_num):
         audio = AudioSegment.from_mp3(f'./tts_post_pts/{post_index}/post_pt{i+1}.mp3')
@@ -63,15 +78,26 @@ def generatePostAudio(post_index):
             post_audio = audio
             continue
         post_audio += audio
-    post_audio.export(f'./tts_dumps/{post_index}/post.mp3', format='mp3')
+    post_audio.export(path, format='mp3')
+    
+    return get_audio_duration(path)
 
-def generateOutroAudio():
+def gen_outro_audio():
     # audio for outro
+    path = './tts_dumps/outro.mp3'
+    
     with open('./outro.txt', 'r', encoding='utf-8') as f:
-        convertTTS(f.read().strip(), './tts_dumps/outro.mp3', voice_id)
+        convert_tts(f.read().strip(), path, voice_id)
         print(f'TTS for outro completed!')
+    
+    return get_audio_duration(path)
 
-def generateAudioFiles():
+def gen_audio_files():
+    duration_info = {
+        'posts': [],
+        'outro': 0,
+    }
+    
     # clear tts_dumps folder contents
     tts_dir = './tts_dumps'
     clear_folder(tts_dir)
@@ -86,32 +112,48 @@ def generateAudioFiles():
         path = os.path.join(tts_post_pts_dir, f'{i+1}')
         os.mkdir(path)
     
-    generateOutroAudio()
+    duration_info['outro'] = gen_outro_audio()
     
     # generate audio for 3 separate posts
     for i in range(3):
         post_index = i + 1
-        generateSegueAudio(post_index)
-        generateTitleAudio(post_index)
+        
+        duration_info['posts'].append({
+            'segue': 0,
+            'title': 0,
+            'post': 0,
+        })
+        duration_info['posts'][i]['segue'] = gen_segue_audio(post_index)
+        duration_info['posts'][i]['title'] = gen_title_audio(post_index)
     
         is_gen_post = True
         while is_gen_post:
             try:
-                generatePostAudio(post_index)
+                duration_info['posts'][i]['post'] = gen_post_audio(post_index)
                 is_gen_post = False
                 break
             except Exception as e:
                 print('Error generating post audio, retrying...')
-            
-    # tts_dump.json info
-    # with open(f'./tts_dumps/{post_index}/info.json', 'w', encoding='utf-8') as f:
-    #     data = {
-    #         'paragraph_num': paragraph_num
-    #     }
-    #     json.dump(data, f)
 
-generateAudioFiles()
-        
+    return duration_info
+
+duration_info = gen_audio_files()
+
+def calc_total_audio_duration(duration_info):
+    total_duration = 0
+    for post in duration_info['posts']:
+        total_duration += post['segue'] + post['title'] + post['post']
+    total_duration += duration_info['outro']
+    return total_duration
+
+duration_info['total'] = calc_total_audio_duration(duration_info)
+
+print('Duration info:')
+print(duration_info)
+
+with open('./duration_info.json', 'w', encoding='utf-8') as f:
+    json.dump(duration_info, f)
+    print('Generated duration_info.json')
 
 
     
@@ -123,7 +165,7 @@ generateAudioFiles()
 
 # preload_models()
 
-# def convertTTS(text_prompt, file_loc, rate): # DO NOT ADD file extension to file_loc
+# def convert_tts(text_prompt, file_loc, rate): # DO NOT ADD file extension to file_loc
 #     wav_file_loc = f'{file_loc}.wav'
 #     mp3_file_loc = f'{file_loc}.mp3'
     
@@ -134,10 +176,10 @@ generateAudioFiles()
 
 # # audio for title
 # with open('./title.txt', 'r', encoding='utf-8') as f:
-#     convertTTS(f.read().strip(), './tts_dumps/title', rate)
+#     convert_tts(f.read().strip(), './tts_dumps/title', rate)
 # # audio for body text
 # with open('./post.txt', 'r', encoding='utf-8') as f:
-#     convertTTS(f.read().strip(), './tts_dumps/post', rate)
+#     convert_tts(f.read().strip(), './tts_dumps/post', rate)
 
 # 3
 
@@ -148,7 +190,7 @@ generateAudioFiles()
 # processor = AutoProcessor.from_pretrained("suno/bark")
 # model = BarkModel.from_pretrained("suno/bark")
 
-# def convertTTS(text_prompt, file_loc, voice_preset, rate=model.generation_config.sample_rate): # DO NOT ADD file extension to file_loc
+# def convert_tts(text_prompt, file_loc, voice_preset, rate=model.generation_config.sample_rate): # DO NOT ADD file extension to file_loc
 #     inputs = processor(text_prompt, voice_preset=voice_preset)
 
 #     audio_array = model.generate(**inputs)
@@ -161,22 +203,22 @@ generateAudioFiles()
 
 # # audio for title
 # with open('./title.txt', 'r', encoding='utf-8') as f: # DO NOT ADD file extension to file_loc
-#     convertTTS(f.read().strip(), './tts_dumps/title', "v2/en_speaker_6")
+#     convert_tts(f.read().strip(), './tts_dumps/title', "v2/en_speaker_6")
 # # audio for body text
 # with open('./post.txt', 'r', encoding='utf-8') as f:
-#     convertTTS(f.read().strip(), './tts_dumps/post', "v2/en_speaker_6")
+#     convert_tts(f.read().strip(), './tts_dumps/post', "v2/en_speaker_6")
     
 # 4
 # from gtts import gTTS
 
-# def convertTTS(text_prompt, file_loc, language):
+# def convert_tts(text_prompt, file_loc, language):
 #     result = gTTS(text=text_prompt, lang=language, tld='us')
 #     result.save(file_loc)
 
 # # audio for title
 # with open('./title.txt', 'r', encoding='utf-8') as f:
-#     convertTTS(f.read().strip(), './tts_dumps/title.mp3', "en")
+#     convert_tts(f.read().strip(), './tts_dumps/title.mp3', "en")
 # # audio for body text
 # with open('./post.txt', 'r', encoding='utf-8') as f:
-#     convertTTS(f.read().strip(), './tts_dumps/post.mp3', "en")
+#     convert_tts(f.read().strip(), './tts_dumps/post.mp3', "en")
     

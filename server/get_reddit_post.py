@@ -14,7 +14,7 @@ for i in range(3):
     path = os.path.join(posts_dir, f'{i+1}')
     os.mkdir(path)
 
-def getRandItem(my_list):
+def get_rand_item(my_list):
     return my_list[random.randint(0, len(my_list)-1)]
 
 reddit = Reddit(
@@ -37,7 +37,7 @@ sub_list = [
     'relationships',
 ]
 
-def getPost(sub_list, post_index):
+def get_post(sub_list, post_index):
     subreddit = reddit.subreddit('+'.join(sub_list))
 
     top_submissions_of_year = list(subreddit.top(time_filter='year', limit=400))
@@ -77,7 +77,7 @@ def getPost(sub_list, post_index):
         
     print(f'Total filtered posts: {len(filtered_posts)}')
 
-    rand_post = getRandItem(filtered_posts)
+    rand_post = get_rand_item(filtered_posts)
     print(f'\nSelected post: {rand_post['title']} ({len(rand_post['text'])}) ^{rand_post['score']}')
 
     # segue
@@ -98,4 +98,4 @@ def getPost(sub_list, post_index):
         print('Written to post.txt')
 
 for i in range(3):
-    getPost(sub_list, i+1)
+    get_post(sub_list, i+1)

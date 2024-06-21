@@ -9,4 +9,6 @@ import { Config } from '@remotion/cli/config';
 
 Config.setVideoImageFormat('jpeg');
 Config.setOverwriteOutput(true);
-// Config.setMaxTimelineTracks(200);
+Config.setCrf(16);
+Config.setVideoBitrate("1M");
+Config.setMaxTimelineTracks(100);
