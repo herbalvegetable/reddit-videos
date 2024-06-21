@@ -25,7 +25,7 @@ const Layout = styled.div`
 	justify-content: center;
 `;
 
-const TitleCard: React.FC<{ username: string, pfpSrc: string, text: string }> = ({ username, pfpSrc, text }) => {
+const TitleCard: React.FC<{ username: string, pfpSrc: string, text: string, index: number }> = ({ username, pfpSrc, text, index }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
   // const opacity = interpolate(
@@ -50,7 +50,7 @@ const TitleCard: React.FC<{ username: string, pfpSrc: string, text: string }> = 
 		border-radius: 10px;
 		box-sizing: border-box;
 		padding: 1em 1.5em;
-		transform: scale(${scale});
+		transform: scale(${index <= 0 ? 1 : scale});
 	`;
 
   const reactions = [
@@ -238,7 +238,8 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
                   <TitleCard
                     username={username}
                     pfpSrc={pfpSrc}
-                    text={title} />
+                    text={title}
+                    index={i} />
                 </Layout>
                 <Audio volume={1} src={`http://localhost:5000/api/audio/${postIndex}/title`} />
               </Sequence>

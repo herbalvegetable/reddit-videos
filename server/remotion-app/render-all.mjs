@@ -14,6 +14,12 @@ const compositions = await getCompositions(bundled);
  
 for (const composition of compositions) {
   console.log(`Rendering ${composition.id}...`);
+  await renderStill({
+    composition,
+    serveUrl: bundled,
+    output: 'out/thumbnail.png',
+    frame: 20,
+  });
   await renderMedia({
     codec: "h264",
     composition,
