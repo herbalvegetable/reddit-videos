@@ -4,3 +4,4 @@ py stt.py
 py get_bg_video.py
 :: py generate_thumbnail.py
 node ./remotion-app/render-all.mjs
+py upload_video.py

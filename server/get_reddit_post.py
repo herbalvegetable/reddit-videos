@@ -3,6 +3,7 @@ from praw import Reddit
 import random
 import string
 import re
+import json
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -37,7 +38,7 @@ sub_list = [
     'relationships',
 ]
 
-def get_post(sub_list, post_index):
+def get_posts(sub_list):
     subreddit = reddit.subreddit('+'.join(sub_list))
 
     top_submissions_of_year = list(subreddit.top(time_filter='year', limit=400))
@@ -77,25 +78,47 @@ def get_post(sub_list, post_index):
         
     print(f'Total filtered posts: {len(filtered_posts)}')
 
-    rand_post = get_rand_item(filtered_posts)
-    print(f'\nSelected post: {rand_post['title']} ({len(rand_post['text'])}) ^{rand_post['score']}')
+    posts = []
 
-    # segue
-    with open(f'./posts/{post_index}/segue.txt', 'w') as f:
-        suffix = {
-            1: 'st',
-            2: 'nd',
-            3: 'rd',
-        }
-        f.write(f'{post_index}{'th' if post_index not in suffix else suffix[post_index]} story')
-    # title
-    with open(f'./posts/{post_index}/title.txt', 'w') as f:
-        f.write(rand_post['title'].replace('&#x200B;', ''))
-        print('Written to title.txt')
-    # post
-    with open(f'./posts/{post_index}/post.txt', 'w') as f:
-        f.write(rand_post['text'].replace('&#x200B;', ''))
-        print('Written to post.txt')
+    for post_index in range(1, 4):
+        rand_post = get_rand_item(filtered_posts)
+        posts.append(rand_post)
+        
+        print(f'\nSelected post: {rand_post['title']} ({len(rand_post['text'])}) ^{rand_post['score']}')
 
-for i in range(3):
-    get_post(sub_list, i+1)
+        # segue
+        with open(f'./posts/{post_index}/segue.txt', 'w') as f:
+            suffix = {
+                1: 'st',
+                2: 'nd',
+                3: 'rd',
+            }
+            f.write(f'{post_index}{'th' if post_index not in suffix else suffix[post_index]} story')
+        # title
+        with open(f'./posts/{post_index}/title.txt', 'w') as f:
+            f.write(rand_post['title'].replace('&#x200B;', ''))
+            print('Written to title.txt')
+        # post
+        with open(f'./posts/{post_index}/post.txt', 'w') as f:
+            f.write(rand_post['text'].replace('&#x200B;', ''))
+            print('Written to post.txt')
+    
+    return posts
+
+# get title & description of video
+posts = get_posts(sub_list)
+
+upload_data = dict(
+        file='./remotion-app/out/myComposition.mp4',
+        thumbnail='./remotion-app/out/thumbnail.png',
+        title=posts[0]['title'],
+        description=f'1st story:\\n{posts[0]['title']} \\n\\n2nd story:\n{posts[1]['title']} \n\n3rd story:\n{posts[2]['title']} \n\nreddit stories,reddit stories to fall asleep to,reddit scary stories,reddit aita,reddit asmr,reddit aita compilation,reddit aita compilation,reddit bad parents,reddit breakup stories',
+        keywords='reddit stories,reddit stories to fall asleep to,reddit scary stories,reddit aita,reddit asmr,reddit aita compilation,reddit aita compilation,reddit bad parents,reddit breakup stories',
+        category='24',
+        privacyStatus='public',
+    )
+    
+# Create upload_data.json
+with open(f'./upload_data.json', 'w', encoding='utf-8') as f:
+    json.dump(upload_data, f)
+    

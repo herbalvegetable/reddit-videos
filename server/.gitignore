@@ -6,3 +6,5 @@ tts_post_pts/
 bg-videos/
 posts/
 .env
+client_secrets.json
+upload_video.py-oauth2.json

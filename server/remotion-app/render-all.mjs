@@ -1,5 +1,5 @@
 import { bundle } from "@remotion/bundler";
-import { getCompositions, renderMedia } from "@remotion/renderer";
+import { getCompositions, renderMedia, renderStill } from "@remotion/renderer";
 import { createRequire } from "module";
  
 const require = createRequire(import.meta.url);
@@ -18,7 +18,7 @@ for (const composition of compositions) {
     composition,
     serveUrl: bundled,
     output: 'out/thumbnail.png',
-    frame: 20,
+    frame: 100,
   });
   await renderMedia({
     codec: "h264",
