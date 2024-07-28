@@ -73,6 +73,6 @@ def draw_upvote(layer):
 
 draw_upvote(bg)
 
-bg.show()
+# bg.show()
 
 bg.save('./output-thumbnail/thumbnail.png')
